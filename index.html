@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Service Apartments Booking{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Find Your Perfect Stay</h1>
+                <p class="lead mb-4">Choose from 60 premium flats across three luxury service apartments. Experience comfort, convenience, and exceptional service.</p>
+                <div class="d-flex gap-3">
+                    <a href="#search-section" class="btn btn-light btn-lg">Book Now</a>
+                    <a href="{{ url_for('apartments') }}" class="btn btn-outline-light btn-lg">View Apartments</a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-building display-1 text-white opacity-75"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Search Section -->
+<section id="search-section" class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <h3 class="card-title text-center mb-4">Search Available Flats</h3>
+                        <form method="POST" action="{{ url_for('search') }}">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="check_in" class="form-label">Check-in Date</label>
+                                    <input type="date" class="form-control" id="check_in" name="check_in" 
+                                           min="{{ (date.today()).strftime('%Y-%m-%d') }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="check_out" class="form-label">Check-out Date</label>
+                                    <input type="date" class="form-control" id="check_out" name="check_out" 
+                                           min="{{ (date.today() + timedelta(days=1)).strftime('%Y-%m-%d') }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="guests" class="form-label">Guests</label>
+                                    <select class="form-select" id="guests" name="guests" required>
+                                        <option value="1">1 Guest</option>
+                                        <option value="2">2 Guests</option>
+                                        <option value="3">3 Guests</option>
+                                        <option value="4">4 Guests</option>
+                                        <option value="5">5 Guests</option>
+                                        <option value="6">6 Guests</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="apartment_id" class="form-label">Apartment (Optional)</label>
+                                    <select class="form-select" id="apartment_id" name="apartment_id">
+                                        <option value="">Any Apartment</option>
+                                        {% for apartment in apartments %}
+                                        <option value="{{ apartment.id }}">{{ apartment.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="flat_type_id" class="form-label">Flat Type (Optional)</label>
+                                    <select class="form-select" id="flat_type_id" name="flat_type_id">
+                                        <option value="">Any Type</option>
+                                        {% for flat_type in flat_types %}
+                                        <option value="{{ flat_type.id }}">{{ flat_type.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                                        <i class="fas fa-search me-2"></i>Search Available Flats
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Why Choose Our Service Apartments?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-home display-4 text-primary mb-3"></i>
+                        <h5 class="card-title">Home-Like Comfort</h5>
+                        <p class="card-text">Fully furnished apartments with all the amenities you need for a comfortable stay.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-map-marker-alt display-4 text-primary mb-3"></i>
+                        <h5 class="card-title">Prime Locations</h5>
+                        <p class="card-text">Three strategically located apartments in the best areas of the city.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-concierge-bell display-4 text-primary mb-3"></i>
+                        <h5 class="card-title">Premium Service</h5>
+                        <p class="card-text">24/7 support and premium amenities to make your stay exceptional.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Apartments Preview -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Our Service Apartments</h2>
+        <div class="row g-4">
+            {% for apartment in apartments %}
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ apartment.name }}</h5>
+                        <p class="card-text">{{ apartment.description }}</p>
+                        <p class="text-muted small">
+                            <i class="fas fa-map-marker-alt me-1"></i>{{ apartment.address }}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('apartment_details', apartment_id=apartment.id) }}" 
+                               class="btn btn-outline-primary">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<script>
+// Set minimum checkout date based on checkin date
+document.getElementById('check_in').addEventListener('change', function() {
+    const checkInDate = new Date(this.value);
+    const checkOutInput = document.getElementById('check_out');
+    const nextDay = new Date(checkInDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    checkOutInput.min = nextDay.toISOString().split('T')[0];
+    
+    // Clear checkout if it's before new minimum
+    if (checkOutInput.value && new Date(checkOutInput.value) <= checkInDate) {
+        checkOutInput.value = '';
+    }
+});
+</script>
+{% endblock %}
