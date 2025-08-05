@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Book {{ flat_type.name }} - {{ apartment.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('apartments') }}">Apartments</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('apartment_details', apartment_id=apartment.id) }}">{{ apartment.name }}</a></li>
+                    <li class="breadcrumb-item active">Book {{ flat_type.name }}</li>
+                </ol>
+            </nav>
+            
+            <!-- Booking Summary -->
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Booking Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>{{ flat_type.name }}</h5>
+                            <p class="text-muted mb-2">{{ apartment.name }}</p>
+                            <p class="mb-2">{{ flat_type.description }}</p>
+                            <p class="text-muted">
+                                <i class="fas fa-door-open me-1"></i>Room {{ flat.room_number }}, Floor {{ flat.floor }}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <h4 class="text-primary">${{ "%.2f"|format(flat_type.base_price) }}</h4>
+                            <small class="text-muted">per night</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6>Features:</h6>
+                            <ul class="list-unstyled small">
+                                {% for feature in flat_type.features[:4] %}
+                                <li><i class="fas fa-check text-success me-1"></i>{{ feature }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Apartment Amenities:</h6>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for amenity in apartment.amenities[:4] %}
+                                <span class="badge bg-secondary small">{{ amenity }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Booking Form -->
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">Guest Information</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('confirm_booking') }}" id="bookingForm">
+                        <input type="hidden" name="flat_id" value="{{ flat.id }}">
+                        
+                        <div class="row g-3">
+                            <!-- Guest Details -->
+                            <div class="col-md-6">
+                                <label for="guest_name" class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" id="guest_name" name="guest_name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="guest_email" class="form-label">Email Address *</label>
+                                <input type="email" class="form-control" id="guest_email" name="guest_email" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="guest_phone" class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" id="guest_phone" name="guest_phone" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="total_guests" class="form-label">Number of Guests *</label>
+                                <select class="form-select" id="total_guests" name="total_guests" required>
+                                    {% for i in range(1, flat_type.max_guests + 1) %}
+                                    <option value="{{ i }}" {% if search_params.guests and search_params.guests|int == i %}selected{% endif %}>{{ i }} Guest{% if i > 1 %}s{% endif %}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <!-- Dates -->
+                            <div class="col-md-6">
+                                <label for="check_in" class="form-label">Check-in Date *</label>
+                                <input type="date" class="form-control" id="check_in" name="check_in" 
+                                       value="{{ search_params.check_in or '' }}"
+                                       min="{{ (date.today()).strftime('%Y-%m-%d') }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="check_out" class="form-label">Check-out Date *</label>
+                                <input type="date" class="form-control" id="check_out" name="check_out" 
+                                       value="{{ search_params.check_out or '' }}"
+                                       min="{{ (date.today() + timedelta(days=1)).strftime('%Y-%m-%d') }}" required>
+                            </div>
+                            
+                            <!-- Special Requests -->
+                            <div class="col-12">
+                                <label for="special_requests" class="form-label">Special Requests (Optional)</label>
+                                <textarea class="form-control" id="special_requests" name="special_requests" 
+                                          rows="3" placeholder="Any special requests or requirements..."></textarea>
+                            </div>
+                            
+                            <!-- Price Calculation -->
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6>Price Breakdown:</h6>
+                                        <div class="d-flex justify-content-between">
+                                            <span id="price-calculation">Select dates to see price</span>
+                                            <strong id="total-price">$0.00</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Submit -->
+                            <div class="col-12">
+                                <div class="d-flex gap-3">
+                                    <a href="{{ url_for('apartment_details', apartment_id=apartment.id) }}" 
+                                       class="btn btn-outline-secondary">Back to Apartment</a>
+                                    <button type="submit" class="btn btn-primary flex-fill">
+                                        <i class="fas fa-calendar-check me-2"></i>Confirm Booking
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Price calculation
+function calculatePrice() {
+    const checkIn = document.getElementById('check_in').value;
+    const checkOut = document.getElementById('check_out').value;
+    const basePrice = {{ flat_type.base_price }};
+    
+    if (checkIn && checkOut) {
+        const checkInDate = new Date(checkIn);
+        const checkOutDate = new Date(checkOut);
+        const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+        
+        if (nights > 0) {
+            const totalPrice = basePrice * nights;
+            document.getElementById('price-calculation').textContent = 
+                `$${basePrice.toFixed(2)} × ${nights} night${nights > 1 ? 's' : ''}`;
+            document.getElementById('total-price').textContent = `$${totalPrice.toFixed(2)}`;
+        } else {
+            document.getElementById('price-calculation').textContent = 'Invalid date range';
+            document.getElementById('total-price').textContent = '$0.00';
+        }
+    }
+}
+
+// Set minimum checkout date based on checkin date
+document.getElementById('check_in').addEventListener('change', function() {
+    const checkInDate = new Date(this.value);
+    const checkOutInput = document.getElementById('check_out');
+    const nextDay = new Date(checkInDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    checkOutInput.min = nextDay.toISOString().split('T')[0];
+    
+    if (checkOutInput.value && new Date(checkOutInput.value) <= checkInDate) {
+        checkOutInput.value = '';
+    }
+    calculatePrice();
+});
+
+document.getElementById('check_out').addEventListener('change', calculatePrice);
+
+// Initial price calculation
+calculatePrice();
+</script>
+{% endblock %}

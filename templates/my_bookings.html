@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings - Service Apartments{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">My Bookings</h1>
+    
+    {% if not booking_details %}
+    <!-- Email Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-center mb-4">
+                        <i class="fas fa-envelope me-2"></i>Find Your Bookings
+                    </h4>
+                    <p class="text-center text-muted mb-4">
+                        Enter your email address to view all your bookings with us.
+                    </p>
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   placeholder="Enter your email address" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>View My Bookings
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Bookings List -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>Bookings for {{ email }}</h4>
+        <a href="{{ url_for('my_bookings') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-search me-2"></i>Search Different Email
+        </a>
+    </div>
+    
+    {% if booking_details %}
+    <div class="row g-4">
+        {% for detail in booking_details %}
+        <div class="col-lg-6">
+            <div class="card shadow h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Booking #{{ detail.booking.id }}</h5>
+                    <span class="badge bg-{{ 'success' if detail.booking.status == 'confirmed' else 'secondary' }}">
+                        {{ detail.booking.status.title() }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title">{{ detail.flat_type.name }}</h6>
+                    <p class="card-subtitle text-muted mb-3">{{ detail.apartment.name }}</p>
+                    
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <small class="text-muted">Check-in</small><br>
+                            <strong>{{ detail.booking.check_in.strftime('%b %d, %Y') }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Check-out</small><br>
+                            <strong>{{ detail.booking.check_out.strftime('%b %d, %Y') }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Guests</small><br>
+                            <strong>{{ detail.booking.total_guests }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Total Amount</small><br>
+                            <strong class="text-primary">${{ "%.2f"|format(detail.booking.total_price) }}</strong>
+                        </div>
+                        <div class="col-12">
+                            <small class="text-muted">Room Details</small><br>
+                            <strong>Room {{ detail.flat.room_number }}, Floor {{ detail.flat.floor }}</strong>
+                        </div>
+                        {% if detail.booking.special_requests %}
+                        <div class="col-12">
+                            <small class="text-muted">Special Requests</small><br>
+                            <em>{{ detail.booking.special_requests }}</em>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                Booked on {{ detail.booking.booking_date.strftime('%B %d, %Y at %I:%M %p') }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('apartment_details', apartment_id=detail.apartment.id) }}" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-info-circle me-1"></i>View Apartment
+                        </a>
+                        {% if detail.booking.status == 'confirmed' and detail.booking.check_in > date.today() %}
+                        <a href="{{ url_for('cancel_booking', booking_id=detail.booking.id) }}" 
+                           class="btn btn-outline-danger btn-sm"
+                           onclick="return confirm('Are you sure you want to cancel this booking?')">
+                            <i class="fas fa-times me-1"></i>Cancel Booking
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Booking Summary -->
+    <div class="mt-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">{{ booking_details|length }}</h4>
+                        <small class="text-muted">Total Bookings</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">
+                            {{ booking_details|selectattr('booking.status', 'equalto', 'confirmed')|list|length }}
+                        </h4>
+                        <small class="text-muted">Active Bookings</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info">
+                            {{ booking_details|selectattr('booking.check_in', 'gt', date.today())|list|length }}
+                        </h4>
+                        <small class="text-muted">Upcoming Stays</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">
+                            ${{ "%.2f"|format(booking_details|map(attribute='booking.total_price')|sum) }}
+                        </h4>
+                        <small class="text-muted">Total Spent</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        No bookings found for this email address.
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
